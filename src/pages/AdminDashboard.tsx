@@ -1,4 +1,4 @@
-import WhatsAppSettings from "@/components/WhatsAppSettings";
+import WhatsAppSettings from "@/components/admin/WhatsAppSettings";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
