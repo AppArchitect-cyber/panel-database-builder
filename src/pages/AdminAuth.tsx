@@ -60,7 +60,7 @@ const AdminAuth = () => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+      <Card className="bg-[#1c1c1c] text-white rounded-xl p-5 shadow-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-orange-500">
             Admin {isLogin ? 'Login' : 'Sign Up'}
