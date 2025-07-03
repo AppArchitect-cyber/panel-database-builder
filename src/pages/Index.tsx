@@ -166,7 +166,7 @@ const Index = () => {
               <div className="grid grid-cols-2 gap-3">
                 {bettingSites.map((site, index) => (
                   <div key={index} className="bg-gray-900 rounded-lg p-3 text-center">
-                    <div className="text-2xl mb-2">{site.logo}</div>
+                    <img src={site.logo} alt={site.name} className="w-12 h-12 mx-auto mb-2 rounded" />
                     <h3 className="text-xs font-medium mb-3 leading-tight">{site.name}</h3>
                     <div className="space-y-2">
                       <Button
@@ -188,6 +188,7 @@ const Index = () => {
                     </div>
                   </div>
                 ))}
+
               </div>
               <Button onClick={handleBack} variant="secondary" className="w-full mt-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
