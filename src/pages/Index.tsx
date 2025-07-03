@@ -170,26 +170,32 @@ const Index = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {bettingSites.map((site, index) => (
-                  <div key={index} className="bg-gray-900 rounded-lg p-3 text-center">
-                    <img src={site.logo} alt={site.name} className="w-12 h-12 mx-auto mb-2 rounded" />
-                    <h3 className="text-xs font-medium mb-3 leading-tight">{site.name}</h3>
-                    <div className="space-y-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full text-xs"
-                        onClick={() => window.open(site.url, '_blank')}
+                  <div
+                    key={index}
+                    className="bg-[#111] rounded-xl p-4 text-center flex flex-col items-center shadow-md hover:shadow-orange-500 transition duration-300"
+                  >
+                    <img
+                    src={site.logo}
+                    alt={site.name}
+                    className="w-12 h-12 object-contain mb-2"
+                    />
+                    <h3 className="text-xs font-semibold text-gray-100 mb-3 leading-tight">
+                      {site.name}
+                    </h3>
+                    <div className="flex flex-col gap-2 w-full">
+                      <button
+                        onClick={() => window.open(site.url, "_blank")}
+                        className="text-xs bg-white text-black rounded-full px-3 py-1 hover:bg-gray-100 transition"
                       >
                         Visit Site
-                      </Button>
-                      <Button
-                        size="sm"
-                        className={`w-full text-xs ${site.color} hover:opacity-90`}
+                      </button>
+                      <button
                         onClick={() => handleSiteSelection(site.name, site.url)}
+                        className={`text-xs text-white rounded-full px-3 py-1 ${site.color} hover:opacity-90 transition`}
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? 'Processing...' : 'Get ID'}
-                      </Button>
+                        {isSubmitting ? "Processing..." : "Get ID"}
+                      </button>
                     </div>
                   </div>
                 ))}
