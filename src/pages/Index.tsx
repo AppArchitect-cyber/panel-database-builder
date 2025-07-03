@@ -1,11 +1,225 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { User, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const Index = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: '',
+    mobile: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const bettingSites = [
+    { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '🏏' },
+    { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '🎮' },
+    { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '📚' },
+    { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '🪷' },
+    { name: 'reddybook247.com (ReddyBook)', url: 'https://reddybook247.com', color: 'bg-green-500', logo: '📖' },
+    { name: 'myfair247.com (Fairplay)', url: 'https://myfair247.com', color: 'bg-red-500', logo: '⚖️' }
+  ];
+
+  const validateMobile = (mobile: string) => {
+    const mobileRegex = /^[6-9]\d{9}$/;
+    return mobileRegex.test(mobile);
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && !formData.name.trim()) {
+      toast({ title: "Please enter your name", variant: "destructive" });
+      return;
+    }
+    if (currentStep === 2 && !validateMobile(formData.mobile)) {
+      toast({ title: "Please enter a valid 10-digit mobile number starting with 6-9", variant: "destructive" });
+      return;
+    }
+    setCurrentStep(currentStep + 1);
+  };
+
+  const handleBack = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const handleSiteSelection = async (siteName: string, siteUrl: string) => {
+    setIsSubmitting(true);
+    try {
+      // Save to database
+      const { error } = await supabase
+        .from('user_submissions')
+        .insert({
+          name: formData.name.trim(),
+          mobile_number: formData.mobile,
+          selected_website: siteName
+        });
+
+      if (error) throw error;
+
+      // Create WhatsApp message
+      const message = `NAME: ${formData.name.trim()}\nMOBILE NUMBER: +91 ${formData.mobile}\nWEBSITE: ${siteName}`;
+      const whatsappURL = `https://wa.me/9516885469?text=${encodeURIComponent(message)}`;
+      
+      // Open WhatsApp
+      window.open(whatsappURL, '_blank');
+      
+      toast({ title: "Form submitted successfully! WhatsApp opened." });
+      
+      // Reset form
+      setFormData({ name: '', mobile: '' });
+      setCurrentStep(1);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({ title: "Error submitting form", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-black text-white p-4">
+      <div className="max-w-md mx-auto">
+        {/* Banner */}
+        <div className="mb-6 text-center">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-8 mb-4">
+            <h1 className="text-2xl font-bold">Reddy Book</h1>
+          </div>
+          <h2 className="text-orange-500 text-xl font-semibold mb-2">Welcome to Reddy Book</h2>
+          <p className="text-gray-400 text-sm">HELLO SIR KINDLY FILL THE DETAILS FOR NEW ID</p>
+        </div>
+
+        {/* Step 1 - Name */}
+        {currentStep === 1 && (
+          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+            <CardHeader>
+              <CardTitle className="text-orange-500 text-sm">1/3</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">NAME</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-orange-500" />
+                  <Input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter your name"
+                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleNext} className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                <ArrowRight className="w-4 h-4 ml-2" />
+                Next
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 2 - Mobile */}
+        {currentStep === 2 && (
+          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+            <CardHeader>
+              <CardTitle className="text-orange-500 text-sm">2/3</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">MOBILE NUMBER</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-orange-500" />
+                  <Input
+                    type="text"
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    placeholder="Enter your mobile number"
+                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                    maxLength={10}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Button onClick={handleBack} variant="secondary" className="w-full">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <Button onClick={handleNext} className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                  Next
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 3 - Website Selection */}
+        {currentStep === 3 && (
+          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+            <CardHeader>
+              <CardTitle className="text-orange-500 text-sm">3/3</CardTitle>
+              <p className="text-sm">Select Website</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {bettingSites.map((site, index) => (
+                  <div key={index} className="bg-gray-900 rounded-lg p-3 text-center">
+                    <div className="text-2xl mb-2">{site.logo}</div>
+                    <h3 className="text-xs font-medium mb-3 leading-tight">{site.name}</h3>
+                    <div className="space-y-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs"
+                        onClick={() => window.open(site.url, '_blank')}
+                      >
+                        Visit Site
+                      </Button>
+                      <Button
+                        size="sm"
+                        className={`w-full text-xs ${site.color} hover:opacity-90`}
+                        onClick={() => handleSiteSelection(site.name, site.url)}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Processing...' : 'Get ID'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleBack} variant="secondary" className="w-full mt-4">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Social Links */}
+        <div className="flex justify-center space-x-6 mt-8 text-orange-500">
+          <a href="https://t.me/Reddyidsupport" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1">
+            <span>📱</span>
+            <span className="text-sm">@Reddyidsupport</span>
+          </a>
+          <a href="https://www.instagram.com/reddyid247/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1">
+            <span>📷</span>
+            <span className="text-sm">@reddyid247</span>
+          </a>
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center mt-6 text-gray-500 text-xs">
+          © 2025 Reddy Book. All rights reserved.
+        </footer>
+
+        {/* Admin Link */}
+        <div className="text-center mt-4">
+          <a href="/admin" className="text-orange-500 text-sm hover:underline">
+            Admin Panel
+          </a>
+        </div>
       </div>
     </div>
   );

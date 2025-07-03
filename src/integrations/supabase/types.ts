@@ -9,13 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      betting_sites: {
+        Row: {
+          button_color: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          url: string
+        }
+        Insert: {
+          button_color?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          url: string
+        }
+        Update: {
+          button_color?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      user_submissions: {
+        Row: {
+          id: string
+          mobile_number: string
+          name: string
+          selected_website: string
+          status: string | null
+          submitted_at: string
+        }
+        Insert: {
+          id?: string
+          mobile_number: string
+          name: string
+          selected_website: string
+          status?: string | null
+          submitted_at?: string
+        }
+        Update: {
+          id?: string
+          mobile_number?: string
+          name?: string
+          selected_website?: string
+          status?: string | null
+          submitted_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
