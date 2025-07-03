@@ -18,11 +18,11 @@ const Index = () => {
 
   const bettingSites = [
     { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '/cricbet99.jpg' },
-    { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '🎮' },
-    { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '📚' },
-    { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '🪷' },
-    { name: 'reddybook247.com (ReddyBook)', url: 'https://reddybook247.com', color: 'bg-green-500', logo: '📖' },
-    { name: 'myfair247.com (Fairplay)', url: 'https://myfair247.com', color: 'bg-red-500', logo: '⚖️' }
+    { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '/11xplay.jpeg' },
+    { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '/laserbook.jpeg' },
+    { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '/lotus365.png' },
+    { name: 'reddybook247.com (ReddyBook)', url: 'https://reddybook247.com', color: 'bg-green-500', logo: 'reddybook.png' },
+    { name: 'myfair247.com (Fairplay)', url: 'https://myfair247.com', color: 'bg-red-500', logo: 'fairplay.png' }
   ];
 
   const validateMobile = (mobile: string) => {
