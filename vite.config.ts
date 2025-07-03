@@ -19,4 +19,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "dist", // <== Ensure this is set
+  },
+  // 👇 This enables fallback to index.html for all routes like /admin
+  preview: {
+    port: 4173,
+    host: true,
+  },
 }));
