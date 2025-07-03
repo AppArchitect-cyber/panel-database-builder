@@ -227,11 +227,7 @@ const Index = () => {
         </footer>
 
         {/* Admin Link */}
-        <div className="text-center mt-4">
-          <a href="/admin" className="text-orange-500 text-sm hover:underline">
-            Admin Panel
-          </a>
-        </div>
+        
       </div>
     </div>
   );
