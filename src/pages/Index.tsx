@@ -127,7 +127,7 @@ const Index = () => {
 
         {/* Step 2 - Mobile */}
         {currentStep === 2 && (
-          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+          <Card className="bg-[#1c1c1c] text-white rounded-xl p-5 shadow-md">
             <CardHeader>
               <CardTitle className="text-orange-500 text-sm">2/3</CardTitle>
             </CardHeader>
@@ -162,7 +162,7 @@ const Index = () => {
 
         {/* Step 3 - Website Selection */}
         {currentStep === 3 && (
-          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+          <Card className="bg-[#1c1c1c] text-white rounded-xl p-5 shadow-md">
             <CardHeader>
               <CardTitle className="text-orange-500 text-sm">3/3</CardTitle>
               <p className="text-sm">Select Website</p>
