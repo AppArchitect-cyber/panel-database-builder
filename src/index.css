@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 38 100% 50%; /* Orange */
+    --primary: 38 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -35,7 +35,6 @@
 
     --radius: 0.5rem;
 
-    /* Sidebar (light) */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 38 100% 50%;
@@ -47,36 +46,25 @@
   }
 
   .dark {
-    /* Dark Mode */
     --background: 0 0% 5%;
     --foreground: 0 0% 100%;
-
     --card: 0 0% 8%;
     --card-foreground: 0 0% 100%;
-
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
-
     --primary: 38 100% 50%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
-
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 60%;
-
     --accent: 38 100% 50%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 0 0% 25%;
     --input: 0 0% 20%;
     --ring: 38 100% 50%;
-
-    /* Sidebar (dark) */
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 38 100% 50%;
@@ -86,14 +74,12 @@
     --sidebar-border: 0 0% 25%;
     --sidebar-ring: 38 100% 50%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-[Poppins] antialiased;
   }
 }
