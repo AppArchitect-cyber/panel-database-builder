@@ -116,21 +116,6 @@ const AdminAuth = () => {
               {isLoading ? 'Processing...' : (isLogin ? 'Login' : 'Sign Up')}
             </Button>
           </form>
-
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-orange-500 hover:underline text-sm"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
-            </button>
-          </div>
-
-          <div className="mt-4 text-center">
-            <a href="/" className="text-gray-400 hover:text-orange-500 text-sm">
-              ← Back to Home
-            </a>
-          </div>
         </CardContent>
       </Card>
     </div>
