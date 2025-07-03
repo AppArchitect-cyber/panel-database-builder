@@ -1,4 +1,4 @@
-
+import WhatsAppSettings from "@/components/WhatsAppSettings";
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -169,12 +169,25 @@ const AdminDashboard = () => {
             <Settings className="w-4 h-4 mr-2" />
             Admin Users
           </button>
+          <button
+            onClick={() => setActiveTab('whatsapp')}
+            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'whatsapp'
+                ? 'bg-orange-500 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            WhatsApp Number
+          </button>
+
         </div>
 
         {/* Tab Content */}
         {activeTab === 'submissions' && <UserSubmissions />}
         {activeTab === 'sites' && <BettingSites />}
         {activeTab === 'admins' && <AdminUsers />}
+        {activeTab === 'whatsapp' && <WhatsAppSettings />}
       </div>
     </div>
   );
