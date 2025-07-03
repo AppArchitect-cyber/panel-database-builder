@@ -229,9 +229,9 @@ const Index = () => {
         {/* Admin Link */}
         <div style={{ padding: "20px", textAlign: "center" }}>
           <h1>Welcome to Reddy Book</h1>
-          <Link to="/admin" style={{ padding: "10px 20px", background: "#ff6600", color: "#fff", borderRadius: "5px" }}>
-            Admin Panel
-          </Link>
+          <a href="/admin" style={{ color: 'orange', fontWeight: 'bold' }}>
+            Go to Admin Panel
+          </a>
         </div>
 
       </div>
