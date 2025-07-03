@@ -17,7 +17,7 @@ const Index = () => {
   const { toast } = useToast();
 
   const bettingSites = [
-    { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '/cricbet99.jpg' },
+    { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '/public/cricbet99.jpg' },
     { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '🎮' },
     { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '📚' },
     { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '🪷' },
