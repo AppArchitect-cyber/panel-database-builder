@@ -13,7 +13,7 @@ interface UserSubmission {
   mobile_number: string;
   selected_website: string;
   submitted_at: string;
-  status: 'pending' | 'processed' | 'contacted';
+  status: string | null;
 }
 
 const UserSubmissions = () => {
@@ -69,7 +69,7 @@ const UserSubmissions = () => {
     window.open(whatsappURL, '_blank');
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     switch (status) {
       case 'pending':
         return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
@@ -78,7 +78,7 @@ const UserSubmissions = () => {
       case 'contacted':
         return <Badge variant="secondary" className="bg-green-500/20 text-green-500"><Phone className="w-3 h-3 mr-1" />Contacted</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary">{status || 'pending'}</Badge>;
     }
   };
 
