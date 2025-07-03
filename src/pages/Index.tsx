@@ -85,12 +85,17 @@ const Index = () => {
       <div className="max-w-md mx-auto">
         {/* Banner */}
         <div className="mb-6 text-center">
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-8 mb-4">
-            <h1 className="text-2xl font-bold">Reddy Book</h1>
+          <div className="mb-4">
+            <img
+              src="/bannerblack.jpg"
+              alt="Reddy Book Banner"
+              className="rounded-lg w-full object-contain"
+            />
           </div>
           <h2 className="text-orange-500 text-xl font-semibold mb-2">Welcome to Reddy Book</h2>
           <p className="text-gray-400 text-sm">HELLO SIR KINDLY FILL THE DETAILS FOR NEW ID</p>
         </div>
+
 
         {/* Step 1 - Name */}
         {currentStep === 1 && (
