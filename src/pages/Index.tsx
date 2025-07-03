@@ -99,13 +99,13 @@ const Index = () => {
 
         {/* Step 1 - Name */}
         {currentStep === 1 && (
-          <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
+          <Card className="bg-[#1c1c1c] text-white rounded-xl p-5 shadow-md">
             <CardHeader>
               <CardTitle className="text-orange-500 text-sm">1/3</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">NAME</label>
+                <label className="text-white text-sm font-semibold mb-2 block">NAME</label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-orange-500" />
                   <Input
