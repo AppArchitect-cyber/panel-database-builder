@@ -11,7 +11,7 @@ interface Submission {
   name: string;
   mobile_number: string;
   selected_website: string;
-  status: boolean;
+  status: string; // text: 'pending' or 'contacted'
   submitted_at: string;
 }
 
@@ -53,12 +53,12 @@ const UserSubmissions = () => {
     });
 
     const csvContent = [
-      ["Name", "Mobile", "Website", "Contacted", "Submitted At"],
+      ["Name", "Mobile", "Website", "Status", "Submitted At"],
       ...filtered.map((s) => [
         s.name,
         s.mobile_number,
         s.selected_website,
-        s.status ? "Yes" : "No",
+        s.status,
         format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm"),
       ]),
     ]
@@ -93,10 +93,11 @@ const UserSubmissions = () => {
     );
   };
 
-  const toggleContacted = async (id: string, currentStatus: boolean) => {
+  const toggleContacted = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "contacted" ? "pending" : "contacted";
     const { error } = await supabase
       .from("user_submissions")
-      .update({ status: !currentStatus })
+      .update({ status: newStatus })
       .eq("id", id);
 
     if (error) console.error("Update error:", error);
@@ -167,7 +168,7 @@ const UserSubmissions = () => {
               <th className="p-2">Name</th>
               <th className="p-2">Mobile</th>
               <th className="p-2">Website</th>
-              <th className="p-2">Contacted</th>
+              <th className="p-2">Status</th>
               <th className="p-2">Submitted At</th>
             </tr>
           </thead>
@@ -194,12 +195,17 @@ const UserSubmissions = () => {
                     onClick={() => toggleContacted(s.id, s.status)}
                     className="flex items-center gap-1 text-xs"
                   >
-                    {s.status ? (
-                      <CheckSquare className="w-4 h-4 text-green-400" />
+                    {s.status === "contacted" ? (
+                      <>
+                        <CheckSquare className="w-4 h-4 text-green-400" />
+                        Contacted
+                      </>
                     ) : (
-                      <Square className="w-4 h-4 text-gray-400" />
+                      <>
+                        <Square className="w-4 h-4 text-gray-400" />
+                        Pending
+                      </>
                     )}
-                    {s.status ? "Yes" : "No"}
                   </button>
                 </td>
                 <td className="p-2">
