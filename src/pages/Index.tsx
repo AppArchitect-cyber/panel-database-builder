@@ -65,7 +65,7 @@ const Index = () => {
         .insert({
           name: formData.name.trim(),
           mobile_number: formData.mobile,
-          selected_website: siteName
+          selected_website: siteName,
         });
 
       if (error) throw error;
