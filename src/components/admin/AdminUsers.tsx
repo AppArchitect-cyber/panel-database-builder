@@ -123,7 +123,7 @@ const AdminUsers = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-orange-500">Admin Users ({adminUsers.length})</h2>
         <div className="flex gap-2">
-          <Button onClick={fetchAdminUsers} size="sm" variant="outline">
+          <Button onClick={fetchAdminUsers} size="sm" variant="outline" className="bg-orange-600 hover:bg-orange-700 text-white">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
