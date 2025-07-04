@@ -66,6 +66,7 @@ const Index = () => {
           name: formData.name.trim(),
           mobile_number: formData.mobile,
           selected_website: siteName,
+          status: 'pending' 
         });
 
       if (error) throw error;
