@@ -12,7 +12,7 @@ interface Submission {
   mobile_number: string;
   selected_website: string;
   contacted?: boolean;
-  created_at?: string;
+  submitted_at?: string;
 }
 
 const UserSubmissions = () => {
@@ -22,10 +22,13 @@ const UserSubmissions = () => {
   const [toDate, setToDate] = useState("");
 
   const fetchSubmissions = async () => {
-    let query = supabase.from("user_submissions").select("*").order("created_at", { ascending: false });
+    let query = supabase
+      .from("user_submissions")
+      .select("*")
+      .order("submitted_at", { ascending: false });
 
     if (fromDate && toDate) {
-      query = query.gte("created_at", fromDate).lte("created_at", toDate);
+      query = query.gte("submitted_at", fromDate).lte("submitted_at", toDate);
     }
 
     const { data, error } = await query;
@@ -56,18 +59,18 @@ const UserSubmissions = () => {
   const handleDownload = () => {
     const filtered = submissions.filter((s) => {
       if (!fromDate || !toDate) return true;
-      const createdAt = new Date(s.created_at || "");
-      return createdAt >= new Date(fromDate) && createdAt <= new Date(toDate);
+      const submittedAt = new Date(s.submitted_at || "");
+      return submittedAt >= new Date(fromDate) && submittedAt <= new Date(toDate);
     });
 
     const csvContent = [
-      ["Name", "Mobile", "Website", "Contacted", "Created At"],
+      ["Name", "Mobile", "Website", "Contacted", "Submitted At"],
       ...filtered.map(s => [
         s.name,
         s.mobile_number,
         s.selected_website,
         s.contacted ? "Yes" : "No",
-        s.created_at ? format(new Date(s.created_at), "yyyy-MM-dd HH:mm") : "",
+        s.submitted_at ? format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm") : "",
       ])
     ]
       .map(e => e.join(","))
@@ -140,7 +143,7 @@ const UserSubmissions = () => {
               <th className="p-2">Mobile</th>
               <th className="p-2">Website</th>
               <th className="p-2">Contacted</th>
-              <th className="p-2">Created At</th>
+              <th className="p-2">Submitted At</th>
             </tr>
           </thead>
           <tbody>
@@ -160,7 +163,7 @@ const UserSubmissions = () => {
                 <td className="p-2">{s.mobile_number}</td>
                 <td className="p-2">{s.selected_website}</td>
                 <td className="p-2">{s.contacted ? "Yes" : "No"}</td>
-                <td className="p-2">{s.created_at ? format(new Date(s.created_at), "yyyy-MM-dd") : ""}</td>
+                <td className="p-2">{s.submitted_at ? format(new Date(s.submitted_at), "yyyy-MM-dd") : ""}</td>
               </tr>
             ))}
             {submissions.length === 0 && (
