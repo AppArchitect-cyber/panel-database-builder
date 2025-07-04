@@ -121,7 +121,7 @@ const AdminDashboard = () => {
             <p className="text-gray-400 text-sm">Welcome, {user?.email}</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button onClick={() => navigate('/')} variant="outline" size="sm">
+            <Button onClick={() => navigate('/')} variant="outline" size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
               <Eye className="w-4 h-4 mr-2" />
               View Site
             </Button>
