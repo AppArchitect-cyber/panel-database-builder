@@ -1,175 +1,178 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import { Trash2, Download } from "lucide-react";
+import { saveAs } from 'file-saver';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { RefreshCw, MessageCircle, CheckCircle, Clock, Phone } from 'lucide-react';
-
-interface UserSubmission {
+interface Submission {
   id: string;
   name: string;
   mobile_number: string;
   selected_website: string;
-  submitted_at: string;
-  status: string | null;
+  contacted?: boolean;
+  created_at?: string;
 }
 
 const UserSubmissions = () => {
-  const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const fetchSubmissions = async () => {
+    let query = supabase.from("user_submissions").select("*").order("created_at", { ascending: false });
+
+    if (fromDate && toDate) {
+      query = query.gte("created_at", fromDate).lte("created_at", toDate);
+    }
+
+    const { data, error } = await query;
+    if (data) setSubmissions(data);
+    else console.error(error);
+  };
 
   useEffect(() => {
     fetchSubmissions();
   }, []);
 
-  const fetchSubmissions = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('user_submissions')
-        .select('*')
-        .order('submitted_at', { ascending: false });
+  const handleDelete = async () => {
+    if (selectedIds.length === 0) return;
 
-      if (error) throw error;
-      setSubmissions(data || []);
-    } catch (error) {
-      console.error('Error fetching submissions:', error);
-      toast({ title: "Error fetching submissions", variant: "destructive" });
-    } finally {
-      setLoading(false);
+    const { error } = await supabase
+      .from("user_submissions")
+      .delete()
+      .in("id", selectedIds);
+
+    if (error) {
+      console.error("Delete error:", error);
+    } else {
+      setSubmissions(prev => prev.filter(s => !selectedIds.includes(s.id)));
+      setSelectedIds([]);
     }
   };
 
-  const updateStatus = async (id: string, status: 'processed' | 'contacted') => {
-    try {
-      const { error } = await supabase
-        .from('user_submissions')
-        .update({ status })
-        .eq('id', id);
+  const handleDownload = () => {
+    const filtered = submissions.filter((s) => {
+      if (!fromDate || !toDate) return true;
+      const createdAt = new Date(s.created_at || "");
+      return createdAt >= new Date(fromDate) && createdAt <= new Date(toDate);
+    });
 
-      if (error) throw error;
-      
-      setSubmissions(prev => 
-        prev.map(sub => sub.id === id ? { ...sub, status } : sub)
-      );
-      
-      toast({ title: `Status updated to ${status}` });
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast({ title: "Error updating status", variant: "destructive" });
-    }
+    const csvContent = [
+      ["Name", "Mobile", "Website", "Contacted", "Created At"],
+      ...filtered.map(s => [
+        s.name,
+        s.mobile_number,
+        s.selected_website,
+        s.contacted ? "Yes" : "No",
+        s.created_at ? format(new Date(s.created_at), "yyyy-MM-dd HH:mm") : "",
+      ])
+    ]
+      .map(e => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "user_submissions.csv");
   };
 
-  const openWhatsApp = (mobile: string, name: string, website: string) => {
-    const message = `Hello ${name}, regarding your request for ${website} ID. We will process your request shortly.`;
-    const whatsappURL = `https://wa.me/${mobile.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
-  };
-
-  const getStatusBadge = (status: string | null) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
-      case 'processed':
-        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-500"><CheckCircle className="w-3 h-3 mr-1" />Processed</Badge>;
-      case 'contacted':
-        return <Badge variant="secondary" className="bg-green-500/20 text-green-500"><Phone className="w-3 h-3 mr-1" />Contacted</Badge>;
-      default:
-        return <Badge variant="secondary">{status || 'pending'}</Badge>;
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
-        <CardContent className="p-8 text-center">
-          <div className="text-orange-500">Loading submissions...</div>
-        </CardContent>
-      </Card>
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-  }
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-orange-500">User Submissions ({submissions.length})</h2>
-        <Button onClick={fetchSubmissions} size="sm" variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
+    <div className="bg-gray-900 p-4 rounded-lg shadow text-white">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <label className="text-sm">
+          From:{" "}
+          <Input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="text-black"
+          />
+        </label>
+        <label className="text-sm">
+          To:{" "}
+          <Input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="text-black"
+          />
+        </label>
+
+        <Button onClick={handleDownload} className="bg-orange-600 hover:bg-orange-700 text-white">
+          <Download className="w-4 h-4 mr-2" />
+          Download CSV
+        </Button>
+        <Button
+          onClick={handleDelete}
+          className="bg-red-600 hover:bg-red-700 text-white"
+          disabled={selectedIds.length === 0}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete Selected
         </Button>
       </div>
 
-      {submissions.length === 0 ? (
-        <Card className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
-          <CardContent className="p-8 text-center text-gray-400">
-            No submissions found.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {submissions.map((submission) => (
-            <Card key={submission.id} className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg text-white">{submission.name}</CardTitle>
-                    <p className="text-gray-400 text-sm">
-                      {new Date(submission.submitted_at).toLocaleString()}
-                    </p>
-                  </div>
-                  {getStatusBadge(submission.status)}
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm">
-                    <span className="text-gray-400">Mobile:</span> 
-                    <span className="text-white ml-2">{submission.mobile_number}</span>
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-gray-400">Website:</span> 
-                    <span className="text-white ml-2">{submission.selected_website}</span>
-                  </p>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openWhatsApp(submission.mobile_number, submission.name, submission.selected_website)}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </Button>
-                  
-                  {submission.status === 'pending' && (
-                    <Button
-                      size="sm"
-                      onClick={() => updateStatus(submission.id, 'processed')}
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
-                      Mark Processed
-                    </Button>
-                  )}
-                  
-                  {submission.status !== 'contacted' && (
-                    <Button
-                      size="sm"
-                      onClick={() => updateStatus(submission.id, 'contacted')}
-                      className="bg-green-500 hover:bg-green-600"
-                    >
-                      Mark Contacted
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      {/* Table */}
+      <div className="overflow-auto rounded border border-gray-700">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-800 text-orange-400 uppercase text-xs">
+            <tr>
+              <th className="p-2">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.length === submissions.length}
+                  onChange={(e) =>
+                    setSelectedIds(
+                      e.target.checked ? submissions.map((s) => s.id) : []
+                    )
+                  }
+                />
+              </th>
+              <th className="p-2">Name</th>
+              <th className="p-2">Mobile</th>
+              <th className="p-2">Website</th>
+              <th className="p-2">Contacted</th>
+              <th className="p-2">Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {submissions.map((s) => (
+              <tr
+                key={s.id}
+                className="border-t border-gray-700 hover:bg-gray-800"
+              >
+                <td className="p-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(s.id)}
+                    onChange={() => toggleSelect(s.id)}
+                  />
+                </td>
+                <td className="p-2">{s.name}</td>
+                <td className="p-2">{s.mobile_number}</td>
+                <td className="p-2">{s.selected_website}</td>
+                <td className="p-2">{s.contacted ? "Yes" : "No"}</td>
+                <td className="p-2">{s.created_at ? format(new Date(s.created_at), "yyyy-MM-dd") : ""}</td>
+              </tr>
+            ))}
+            {submissions.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center p-4 text-gray-500">
+                  No submissions found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
