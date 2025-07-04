@@ -219,9 +219,7 @@ const Index = () => {
         </footer>
 
         {/* Admin Link */}
-        <div className="pt-6 text-center">
-          <a href="/admin" className="text-orange-500 font-bold underline">Go to Admin Panel</a>
-        </div>
+        
       </div>
     </div>
   );
