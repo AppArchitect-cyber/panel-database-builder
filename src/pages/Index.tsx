@@ -174,11 +174,12 @@ const Index = () => {
                       </button>
                       <button
                         onClick={() => handleSiteSelection(site.name, site.url)}
-                        className={text-xs text-white rounded-full px-3 py-1 ${site.color} hover:opacity-90 transition}
+                        className={`text-xs text-white rounded-full px-3 py-1 ${site.color} hover:opacity-90 transition`}
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "Processing..." : "Get ID"}
                       </button>
+
                     </div>
                   </div>
                 ))}
