@@ -71,8 +71,8 @@ const Index = () => {
 
       if (error) throw error;
 
-      const message = NAME: ${formData.name.trim()}\nMOBILE NUMBER: +91 ${formData.mobile}\nWEBSITE: ${siteName};
-      const whatsappURL = https://wa.me/${waNumber}?text=${encodeURIComponent(message)};
+      const message = `NAME: ${formData.name.trim()}\nMOBILE NUMBER: +91 ${formData.mobile}\nWEBSITE: ${siteName}`;
+      const whatsappURL = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
       window.open(whatsappURL, '_blank');
 
