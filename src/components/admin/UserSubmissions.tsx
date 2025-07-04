@@ -3,16 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { Trash2, Download } from "lucide-react";
-import { saveAs } from 'file-saver';
+import { Trash2, Download, CheckSquare, Square } from "lucide-react";
+import { saveAs } from "file-saver";
 
 interface Submission {
   id: string;
   name: string;
   mobile_number: string;
   selected_website: string;
-  contacted?: boolean;
-  submitted_at?: string;
+  status: boolean;
+  submitted_at: string;
 }
 
 const UserSubmissions = () => {
@@ -28,17 +28,48 @@ const UserSubmissions = () => {
       .order("submitted_at", { ascending: false });
 
     if (fromDate && toDate) {
-      query = query.gte("submitted_at", fromDate).lte("submitted_at", toDate);
+      query = query
+        .gte("submitted_at", fromDate)
+        .lte("submitted_at", toDate + "T23:59:59");
     }
 
     const { data, error } = await query;
-    if (data) setSubmissions(data);
-    else console.error(error);
+    if (error) console.error(error);
+    else setSubmissions(data || []);
   };
 
   useEffect(() => {
     fetchSubmissions();
-  }, []);
+  }, [fromDate, toDate]);
+
+  const handleDownload = () => {
+    const filtered = submissions.filter((s) => {
+      if (!fromDate || !toDate) return true;
+      const date = new Date(s.submitted_at);
+      return (
+        date >= new Date(fromDate) &&
+        date <= new Date(toDate + "T23:59:59")
+      );
+    });
+
+    const csvContent = [
+      ["Name", "Mobile", "Website", "Contacted", "Submitted At"],
+      ...filtered.map((s) => [
+        s.name,
+        s.mobile_number,
+        s.selected_website,
+        s.status ? "Yes" : "No",
+        format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm"),
+      ]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    saveAs(blob, "user_submissions.csv");
+  };
 
   const handleDelete = async () => {
     if (selectedIds.length === 0) return;
@@ -51,38 +82,32 @@ const UserSubmissions = () => {
     if (error) {
       console.error("Delete error:", error);
     } else {
-      setSubmissions(prev => prev.filter(s => !selectedIds.includes(s.id)));
+      await fetchSubmissions();
       setSelectedIds([]);
     }
   };
 
-  const handleDownload = () => {
-    const filtered = submissions.filter((s) => {
-      if (!fromDate || !toDate) return true;
-      const submittedAt = new Date(s.submitted_at || "");
-      return submittedAt >= new Date(fromDate) && submittedAt <= new Date(toDate);
-    });
-
-    const csvContent = [
-      ["Name", "Mobile", "Website", "Contacted", "Submitted At"],
-      ...filtered.map(s => [
-        s.name,
-        s.mobile_number,
-        s.selected_website,
-        s.contacted ? "Yes" : "No",
-        s.submitted_at ? format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm") : "",
-      ])
-    ]
-      .map(e => e.join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "user_submissions.csv");
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  const toggleContacted = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from("user_submissions")
+      .update({ status: !currentStatus })
+      .eq("id", id);
+
+    if (error) console.error("Update error:", error);
+    else fetchSubmissions();
+  };
+
+  const isInRange = (dateStr: string) => {
+    if (!fromDate || !toDate) return false;
+    const d = new Date(dateStr);
+    return (
+      d >= new Date(fromDate) && d <= new Date(toDate + "T23:59:59")
     );
   };
 
@@ -150,7 +175,9 @@ const UserSubmissions = () => {
             {submissions.map((s) => (
               <tr
                 key={s.id}
-                className="border-t border-gray-700 hover:bg-gray-800"
+                className={`border-t border-gray-700 hover:bg-gray-800 ${
+                  isInRange(s.submitted_at) ? "bg-gray-800/70" : ""
+                }`}
               >
                 <td className="p-2">
                   <input
@@ -162,8 +189,24 @@ const UserSubmissions = () => {
                 <td className="p-2">{s.name}</td>
                 <td className="p-2">{s.mobile_number}</td>
                 <td className="p-2">{s.selected_website}</td>
-                <td className="p-2">{s.contacted ? "Yes" : "No"}</td>
-                <td className="p-2">{s.submitted_at ? format(new Date(s.submitted_at), "yyyy-MM-dd") : ""}</td>
+                <td className="p-2">
+                  <button
+                    onClick={() => toggleContacted(s.id, s.status)}
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    {s.status ? (
+                      <CheckSquare className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400" />
+                    )}
+                    {s.status ? "Yes" : "No"}
+                  </button>
+                </td>
+                <td className="p-2">
+                  {s.submitted_at
+                    ? format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm")
+                    : ""}
+                </td>
               </tr>
             ))}
             {submissions.length === 0 && (
