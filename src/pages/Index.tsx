@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User, Phone, ArrowRight, ArrowLeft, Instagram, Send } from "lucide-react";
+import { User, Phone, ArrowRight, ArrowLeft } from "lucide-react";
+import { Instagram, Send } from 'lucide-react';
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -12,7 +13,15 @@ const Index = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const [waNumber, setWaNumber] = useState("");
-  const [bettingSites, setBettingSites] = useState([]);
+
+  const bettingSites = [
+    { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '/cricbet99.jpg' },
+    { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '/11xplay.jpeg' },
+    { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '/laserbook.jpeg' },
+    { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '/lotus365.png' },
+    { name: 'reddybook247.com (ReddyBook)', url: 'https://reddybook247.com', color: 'bg-green-500', logo: 'reddybook.png' },
+    { name: 'myfair247.com (Fairplay)', url: 'https://myfair247.com', color: 'bg-red-500', logo: 'fairplay.png' }
+  ];
 
   useEffect(() => {
     const fetchWhatsAppNumber = async () => {
@@ -29,22 +38,7 @@ const Index = () => {
       }
     };
 
-    const fetchSites = async () => {
-      const { data, error } = await supabase
-        .from("betting_sites")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching betting sites:", error.message);
-      } else {
-        setBettingSites(data || []);
-      }
-    };
-
     fetchWhatsAppNumber();
-    fetchSites();
   }, []);
 
   const validateMobile = (mobile: string) => /^[6-9]\d{9}$/.test(mobile);
@@ -72,15 +66,16 @@ const Index = () => {
           name: formData.name.trim(),
           mobile_number: formData.mobile,
           selected_website: siteName,
-          status: true // assuming boolean default
+          status: 'pending' 
         });
 
       if (error) throw error;
 
-      const message = `NAME: ${formData.name.trim()}\nMOBILE NUMBER: +91 ${formData.mobile}\nWEBSITE: ${siteName}`;
-      const whatsappURL = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+      const message = NAME: ${formData.name.trim()}\nMOBILE NUMBER: +91 ${formData.mobile}\nWEBSITE: ${siteName};
+      const whatsappURL = https://wa.me/${waNumber}?text=${encodeURIComponent(message)};
 
       window.open(whatsappURL, '_blank');
+
       toast({ title: "Form submitted successfully! WhatsApp opened." });
       setFormData({ name: '', mobile: '' });
       setCurrentStep(1);
@@ -168,8 +163,8 @@ const Index = () => {
               <div className="grid grid-cols-2 gap-3">
                 {bettingSites.map((site, index) => (
                   <div key={index} className="bg-[#111] rounded-xl p-4 text-center flex flex-col items-center shadow-md hover:shadow-orange-500 transition duration-300">
-                    <img src={site.logo_url} alt={site.name} className="w-12 h-12 object-contain mb-2" />
-                    <h3 className="text-xs font-semibold text-gray-100 mb-3 leading-tight">{site.display_name}</h3>
+                    <img src={site.logo} alt={site.name} className="w-12 h-12 object-contain mb-2" />
+                    <h3 className="text-xs font-semibold text-gray-100 mb-3 leading-tight">{site.name}</h3>
                     <div className="flex flex-col gap-2 w-full">
                       <button
                         onClick={() => window.open(site.url, "_blank")}
@@ -178,8 +173,8 @@ const Index = () => {
                         Visit Site
                       </button>
                       <button
-                        onClick={() => handleSiteSelection(site.display_name, site.url)}
-                        className={`text-xs text-white rounded-full px-3 py-1 ${site.button_color} hover:opacity-90 transition`}
+                        onClick={() => handleSiteSelection(site.name, site.url)}
+                        className={text-xs text-white rounded-full px-3 py-1 ${site.color} hover:opacity-90 transition}
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "Processing..." : "Get ID"}
@@ -197,11 +192,21 @@ const Index = () => {
 
         {/* Social Links */}
         <div className="flex justify-center space-x-6 mt-8 text-orange-500">
-          <a href="https://t.me/Reddyidsupport" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-orange-400 transition">
+          <a
+            href="https://t.me/Reddyidsupport"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 hover:text-orange-400 transition"
+          >
             <Send className="w-4 h-4" />
             <span className="text-sm">@Reddyidsupport</span>
           </a>
-          <a href="https://www.instagram.com/reddyid247/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-orange-400 transition">
+          <a
+            href="https://www.instagram.com/reddyid247/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 hover:text-orange-400 transition"
+          >
             <Instagram className="w-4 h-4" />
             <span className="text-sm">@reddyid247</span>
           </a>
@@ -213,9 +218,7 @@ const Index = () => {
         </footer>
 
         {/* Admin Link */}
-        <div className="pt-6 text-center">
-          <a href="/admin" className="text-orange-500 font-bold underline">Go to Admin Panel</a>
-        </div>
+        
       </div>
     </div>
   );
