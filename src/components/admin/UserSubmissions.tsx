@@ -2,162 +2,144 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Download, Trash2, CheckSquare, Square, Calendar, MessageCircleMore } from "lucide-react";
 import { format } from "date-fns";
-import { Trash2, Download, CheckSquare, Square } from "lucide-react";
-import { saveAs } from "file-saver";
 
 interface Submission {
   id: string;
   name: string;
   mobile_number: string;
   selected_website: string;
-  status: string; // text: 'pending' or 'contacted'
+  status: "pending" | "contacted";
   submitted_at: string;
 }
 
 const UserSubmissions = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, []);
 
   const fetchSubmissions = async () => {
-    let query = supabase
+    const { data, error } = await supabase
       .from("user_submissions")
       .select("*")
       .order("submitted_at", { ascending: false });
 
-    if (fromDate && toDate) {
-      query = query
-        .gte("submitted_at", fromDate)
-        .lte("submitted_at", toDate + "T23:59:59");
-    }
-
-    const { data, error } = await query;
-    if (error) console.error(error);
-    else setSubmissions(data || []);
-  };
-
-  useEffect(() => {
-    fetchSubmissions();
-  }, [fromDate, toDate]);
-
-  const handleDownload = () => {
-    const filtered = submissions.filter((s) => {
-      if (!fromDate || !toDate) return true;
-      const date = new Date(s.submitted_at);
-      return (
-        date >= new Date(fromDate) &&
-        date <= new Date(toDate + "T23:59:59")
-      );
-    });
-
-    const csvContent = [
-      ["Name", "Mobile", "Website", "Status", "Submitted At"],
-      ...filtered.map((s) => [
-        s.name,
-        s.mobile_number,
-        s.selected_website,
-        s.status,
-        format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm"),
-      ]),
-    ]
-      .map((e) => e.join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-    saveAs(blob, "user_submissions.csv");
-  };
-
-  const handleDelete = async () => {
-    if (selectedIds.length === 0) return;
-
-    const { error } = await supabase
-      .from("user_submissions")
-      .delete()
-      .in("id", selectedIds);
-
-    if (error) {
-      console.error("Delete error:", error);
-    } else {
-      await fetchSubmissions();
-      setSelectedIds([]);
+    if (!error) {
+      setSubmissions(data || []);
     }
   };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const toggleContacted = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "contacted" ? "pending" : "contacted";
+  const deleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    const { error } = await supabase
+      .from("user_submissions")
+      .delete()
+      .in("id", selectedIds);
+
+    if (!error) {
+      setSubmissions((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleContacted = async (id: string, currentStatus: "pending" | "contacted") => {
+    const newStatus = currentStatus === "pending" ? "contacted" : "pending";
     const { error } = await supabase
       .from("user_submissions")
       .update({ status: newStatus })
       .eq("id", id);
 
-    if (error) console.error("Update error:", error);
-    else fetchSubmissions();
+    if (!error) {
+      setSubmissions((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+      );
+    }
   };
 
-  const isInRange = (dateStr: string) => {
-    if (!fromDate || !toDate) return false;
-    const d = new Date(dateStr);
-    return (
-      d >= new Date(fromDate) && d <= new Date(toDate + "T23:59:59")
-    );
+  const exportCSV = () => {
+    const header = "Name,Mobile Number,Website,Status,Submitted At\n";
+    const filtered = submissions.filter(isInRange);
+    const rows = filtered
+      .map((s) =>
+        [
+          s.name,
+          `+91${s.mobile_number}`,
+          s.selected_website,
+          s.status,
+          format(new Date(s.submitted_at), "yyyy-MM-dd HH:mm"),
+        ].join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "user_submissions.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const isInRange = (date: string) => {
+    if (!startDate && !endDate) return true;
+    const submitted = new Date(date);
+    const start = startDate ? new Date(startDate) : new Date("2000-01-01");
+    const end = endDate ? new Date(endDate) : new Date("2100-01-01");
+    return submitted >= start && submitted <= end;
   };
 
   return (
-    <div className="bg-gray-900 p-4 rounded-lg shadow text-white">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <label className="text-sm">
-          From:{" "}
-          <Input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="text-black"
-          />
-        </label>
-        <label className="text-sm">
-          To:{" "}
-          <Input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="text-black"
-          />
-        </label>
+    <div className="p-4 text-white">
+      <h2 className="text-xl font-bold text-amber-400 mb-4">User Submissions</h2>
 
-        <Button onClick={handleDownload} className="bg-orange-600 hover:bg-orange-700 text-white">
-          <Download className="w-4 h-4 mr-2" />
-          Download CSV
+      <div className="flex flex-wrap gap-4 mb-4 items-center">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-white" />
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="bg-black border-gray-700 text-white"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-white" />
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="bg-black border-gray-700 text-white"
+          />
+        </div>
+        <Button onClick={exportCSV} className="bg-amber-500 hover:bg-amber-600">
+          <Download className="w-4 h-4 mr-2" /> Download Data
         </Button>
-        <Button
-          onClick={handleDelete}
-          className="bg-red-600 hover:bg-red-700 text-white"
-          disabled={selectedIds.length === 0}
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete Selected
-        </Button>
+        {selectedIds.length > 0 && (
+          <Button onClick={deleteSelected} className="bg-red-600 hover:bg-red-700">
+            <Trash2 className="w-4 h-4 mr-2" /> Delete Selected
+          </Button>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="overflow-auto rounded border border-gray-700">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-800 text-orange-400 uppercase text-xs">
+      <div className="overflow-x-auto">
+        <table className="w-full border border-gray-700 text-sm text-left">
+          <thead className="bg-gray-800">
             <tr>
               <th className="p-2">
                 <input
                   type="checkbox"
-                  checked={selectedIds.length === submissions.length}
                   onChange={(e) =>
                     setSelectedIds(
                       e.target.checked ? submissions.map((s) => s.id) : []
@@ -188,7 +170,22 @@ const UserSubmissions = () => {
                   />
                 </td>
                 <td className="p-2">{s.name}</td>
-                <td className="p-2">{s.mobile_number}</td>
+                <td className="p-2 flex items-center gap-2">
+                  {s.mobile_number}
+                  {s.mobile_number && (
+                    <a
+                      href={`https://wa.me/91${s.mobile_number}?text=${encodeURIComponent(
+                        `Hello ${s.name}, this is Reddy Book support team.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-400 hover:text-green-500"
+                      title="Chat on WhatsApp"
+                    >
+                      <MessageCircleMore className="w-4 h-4" />
+                    </a>
+                  )}
+                </td>
                 <td className="p-2">{s.selected_website}</td>
                 <td className="p-2">
                   <button
@@ -215,13 +212,6 @@ const UserSubmissions = () => {
                 </td>
               </tr>
             ))}
-            {submissions.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center p-4 text-gray-500">
-                  No submissions found.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
