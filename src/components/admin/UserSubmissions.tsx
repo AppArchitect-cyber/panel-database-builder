@@ -137,6 +137,7 @@ const UserSubmissions = () => {
         <table className="w-full border border-gray-700 text-sm text-left">
           <thead className="bg-gray-800">
             <tr>
+              <th className="p-2">#</th>
               <th className="p-2">
                 <input
                   type="checkbox"
@@ -155,13 +156,14 @@ const UserSubmissions = () => {
             </tr>
           </thead>
           <tbody>
-            {submissions.map((s) => (
+            {submissions.map((s, index) => (
               <tr
                 key={s.id}
                 className={`border-t border-gray-700 hover:bg-gray-800 ${
                   isInRange(s.submitted_at) ? "bg-gray-800/70" : ""
                 }`}
               >
+                <td className="p-2">{index + 1}</td>
                 <td className="p-2">
                   <input
                     type="checkbox"
