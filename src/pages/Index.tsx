@@ -17,17 +17,13 @@ const Index = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch WhatsApp number
+      // Fetch WhatsApp number using raw query to avoid type issues
       const { data: waData, error: waError } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "whatsapp")
+        .rpc('get_setting', { setting_key: 'whatsapp' })
         .maybeSingle();
 
-      if (waError) {
-        console.error("Error fetching WhatsApp number:", waError.message);
-      } else {
-        setWaNumber(waData?.value || "");
+      if (!waError && waData) {
+        setWaNumber(waData || "");
       }
 
       // Fetch betting sites
