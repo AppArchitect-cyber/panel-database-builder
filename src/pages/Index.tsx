@@ -176,8 +176,8 @@ const Index = () => {
               <div className="grid grid-cols-2 gap-3">
                 {bettingSites.map((site, index) => (
                   <div key={index} className="bg-[#111] rounded-xl p-4 text-center flex flex-col items-center shadow-md hover:shadow-orange-500 transition duration-300">
-                    <img src={site.logo} alt={site.name} className="w-12 h-12 object-contain mb-2" />
-                    <h3 className="text-xs font-semibold text-gray-100 mb-3 leading-tight">{site.name}</h3>
+                    <img src={site.logo_url || site.logo} alt={site.display_name || site.name} className="w-12 h-12 object-contain mb-2" />
+                    <h3 className="text-xs font-semibold text-gray-100 mb-3 leading-tight">{site.display_name || site.name}</h3>
                     <div className="flex flex-col gap-2 w-full">
                       <button
                         onClick={() => window.open(site.url, "_blank")}
@@ -186,8 +186,14 @@ const Index = () => {
                         Visit Site
                       </button>
                       <button
-                        onClick={() => handleSiteSelection(site.name, site.url)}
-                        className={`text-xs text-white rounded-full px-3 py-1 ${site.color} hover:opacity-90 transition`}
+                        onClick={() => handleSiteSelection(site.display_name || site.name, site.url)}
+                        className={`text-xs text-white rounded-full px-3 py-1 ${
+                          site.button_color === 'green' ? 'bg-green-500' : 
+                          site.button_color === 'red' ? 'bg-red-500' : 
+                          site.button_color === 'blue' ? 'bg-blue-500' : 
+                          site.button_color === 'purple' ? 'bg-purple-500' : 
+                          site.color || 'bg-green-500'
+                        } hover:opacity-90 transition`}
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "Processing..." : "Get ID"}
