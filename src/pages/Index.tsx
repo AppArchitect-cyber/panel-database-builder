@@ -13,32 +13,47 @@ const Index = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const [waNumber, setWaNumber] = useState("");
-
-  const bettingSites = [
-    { name: 'cricindia99.com (CricBet99)', url: 'https://cricindia99.com', color: 'bg-green-500', logo: '/cricbet99.jpg' },
-    { name: '7xmatch.com (11xplay)', url: 'https://7xmatch.com', color: 'bg-red-500', logo: '/11xplay.jpeg' },
-    { name: 'lagan247.com (LaserBook)', url: 'https://lagan247.com', color: 'bg-purple-500', logo: '/laserbook.jpeg' },
-    { name: 'lagan365.com (Lotus365)', url: 'https://lagan365.com', color: 'bg-green-500', logo: '/lotus365.png' },
-    { name: 'reddybook247.com (ReddyBook)', url: 'https://reddybook247.com', color: 'bg-green-500', logo: 'reddybook.png' },
-    { name: 'myfair247.com (Fairplay)', url: 'https://myfair247.com', color: 'bg-red-500', logo: 'fairplay.png' }
-  ];
+  const [bettingSites, setBettingSites] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchWhatsAppNumber = async () => {
-      const { data, error } = await supabase
+    const fetchData = async () => {
+      // Fetch WhatsApp number
+      const { data: waData, error: waError } = await supabase
         .from("settings")
         .select("value")
         .eq("key", "whatsapp")
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching WhatsApp number:", error.message);
+      if (waError) {
+        console.error("Error fetching WhatsApp number:", waError.message);
       } else {
-        setWaNumber(data?.value || "");
+        setWaNumber(waData?.value || "");
+      }
+
+      // Fetch betting sites
+      const { data: sitesData, error: sitesError } = await supabase
+        .from("betting_sites")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
+      if (sitesError) {
+        console.error("Error fetching betting sites:", sitesError.message);
+        // Fallback to hardcoded sites if fetch fails
+        setBettingSites([
+          { name: 'cricindia99.com (CricBet99)', display_name: 'CricBet99', url: 'https://cricindia99.com', button_color: 'bg-green-500', logo_url: '/cricbet99.jpg' },
+          { name: '7xmatch.com (11xplay)', display_name: '11xplay', url: 'https://7xmatch.com', button_color: 'bg-red-500', logo_url: '/11xplay.jpeg' },
+          { name: 'lagan247.com (LaserBook)', display_name: 'LaserBook', url: 'https://lagan247.com', button_color: 'bg-purple-500', logo_url: '/laserbook.jpeg' },
+          { name: 'lagan365.com (Lotus365)', display_name: 'Lotus365', url: 'https://lagan365.com', button_color: 'bg-green-500', logo_url: '/lotus365.png' },
+          { name: 'reddybook247.com (ReddyBook)', display_name: 'ReddyBook', url: 'https://reddybook247.com', button_color: 'bg-green-500', logo_url: '/reddybook.png' },
+          { name: 'myfair247.com (Fairplay)', display_name: 'Fairplay', url: 'https://myfair247.com', button_color: 'bg-red-500', logo_url: '/fairplay.png' }
+        ]);
+      } else {
+        setBettingSites(sitesData || []);
       }
     };
 
-    fetchWhatsAppNumber();
+    fetchData();
   }, []);
 
   const validateMobile = (mobile: string) => /^[6-9]\d{9}$/.test(mobile);
