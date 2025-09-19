@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { RefreshCw, Plus, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { RefreshCw, Plus, Edit, Trash2, ExternalLink, Upload, X } from 'lucide-react';
 
 interface BettingSite {
   id: string;
@@ -32,6 +32,8 @@ const BettingSites = () => {
     logo_url: '',
     button_color: 'green'
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,14 +58,50 @@ const BettingSites = () => {
     }
   };
 
+  const uploadLogo = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `logos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('logos')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     
     try {
+      let logoUrl = formData.logo_url;
+
+      // Upload new logo if file is selected
+      if (logoFile) {
+        const uploadedUrl = await uploadLogo(logoFile);
+        if (uploadedUrl) {
+          logoUrl = uploadedUrl;
+        } else {
+          throw new Error('Failed to upload logo');
+        }
+      }
+
+      const dataToSubmit = { ...formData, logo_url: logoUrl };
+
       if (editingSite) {
         const { error } = await supabase
           .from('betting_sites')
-          .update(formData)
+          .update(dataToSubmit)
           .eq('id', editingSite.id);
         
         if (error) throw error;
@@ -71,19 +109,22 @@ const BettingSites = () => {
       } else {
         const { error } = await supabase
           .from('betting_sites')
-          .insert([formData]);
+          .insert([dataToSubmit]);
         
         if (error) throw error;
         toast({ title: "Site added successfully" });
       }
       
       setFormData({ name: '', display_name: '', url: '', logo_url: '', button_color: 'green' });
+      setLogoFile(null);
       setShowForm(false);
       setEditingSite(null);
       fetchSites();
     } catch (error) {
       console.error('Error saving site:', error);
       toast({ title: "Error saving site", variant: "destructive" });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -141,7 +182,17 @@ const BettingSites = () => {
   const cancelForm = () => {
     setShowForm(false);
     setEditingSite(null);
+    setLogoFile(null);
     setFormData({ name: '', display_name: '', url: '', logo_url: '', button_color: 'green' });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      // Clear the URL field when a file is selected
+      setFormData({ ...formData, logo_url: '' });
+    }
   };
 
   if (loading) {
@@ -212,13 +263,51 @@ const BettingSites = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Logo URL (optional)</label>
-                  <Input
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    placeholder="https://example.com/logo.png"
-                    className="bg-gray-700 border-gray-600 text-white"
-                  />
+                  <label className="block text-sm font-medium mb-2">Logo</label>
+                  <div className="space-y-2">
+                    {/* File Upload */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 text-white text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload Image
+                      </label>
+                      {logoFile && (
+                        <div className="flex items-center gap-2 text-sm text-green-400">
+                          <span>{logoFile.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setLogoFile(null)}
+                            className="text-red-400 hover:text-red-500"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* URL Input - only show if no file selected */}
+                    {!logoFile && (
+                      <div>
+                        <span className="text-xs text-gray-400 mb-1 block">Or enter URL:</span>
+                        <Input
+                          value={formData.logo_url}
+                          onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                          placeholder="https://example.com/logo.png"
+                          className="bg-gray-700 border-gray-600 text-white"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Button Color</label>
@@ -236,8 +325,8 @@ const BettingSites = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
-                  {editingSite ? 'Update' : 'Add'} Site
+                <Button type="submit" className="bg-orange-500 hover:bg-orange-600" disabled={uploading}>
+                  {uploading ? 'Uploading...' : editingSite ? 'Update' : 'Add'} Site
                 </Button>
                 <Button type="button" onClick={cancelForm} variant="outline">
                   Cancel
@@ -261,19 +350,33 @@ const BettingSites = () => {
             <Card key={site.id} className="bg-gradient-to-b from-gray-800 to-black border-orange-500/20">
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white">{site.display_name}</h3>
-                    <p className="text-gray-400 text-sm">{site.name}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <a 
-                        href={site.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-orange-500 hover:underline text-sm flex items-center"
-                      >
-                        {site.url} <ExternalLink className="w-3 h-3 ml-1" />
-                      </a>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white">{site.display_name}</h3>
+                      <p className="text-gray-400 text-sm">{site.name}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <a 
+                          href={site.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-orange-500 hover:underline text-sm flex items-center"
+                        >
+                          {site.url} <ExternalLink className="w-3 h-3 ml-1" />
+                        </a>
+                      </div>
                     </div>
+                    {site.logo_url && (
+                      <div className="w-16 h-16 bg-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={site.logo_url} 
+                          alt={site.display_name}
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={`${site.button_color === 'green' ? 'bg-green-500' : 
