@@ -23,7 +23,7 @@ const WhatsAppSettings = () => {
   const save = async () => {
     const { error } = await supabase
       .from("settings")
-      .upsert([{ key: "whatsapp", value: number }], { onConflict: ["key"] });
+      .upsert([{ key: "whatsapp", value: number }], { onConflict: "key" });
 
     setMessage(error ? "❌ Failed to update" : "✅ WhatsApp number updated");
   };

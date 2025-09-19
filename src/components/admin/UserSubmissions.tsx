@@ -10,7 +10,7 @@ interface Submission {
   name: string;
   mobile_number: string;
   selected_website: string;
-  status: "pending" | "contacted";
+  status: string | null;
   submitted_at: string;
 }
 
@@ -54,7 +54,7 @@ const UserSubmissions = () => {
     }
   };
 
-  const toggleContacted = async (id: string, currentStatus: "pending" | "contacted") => {
+  const toggleContacted = async (id: string, currentStatus: string | null) => {
     const newStatus = currentStatus === "pending" ? "contacted" : "pending";
     const { error } = await supabase
       .from("user_submissions")
@@ -70,7 +70,7 @@ const UserSubmissions = () => {
 
   const exportCSV = () => {
     const header = "Name,Mobile Number,Website,Status,Submitted At\n";
-    const filtered = submissions.filter(isInRange);
+    const filtered = submissions.filter(submission => isInRange(submission.submitted_at));
     const rows = filtered
       .map((s) =>
         [
